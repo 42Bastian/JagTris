@@ -1,6 +1,8 @@
 # JagTris
 
-(c) 1993..2020 42Bastian Schick
+- Code (c) 1993..2020 42Bastian Schick
+- MOD Player (c) tIn
+- MOD (c) Front6
 
 Source release of the pimped JagTris version as it can be found in the LOOPZ ROM.
 
