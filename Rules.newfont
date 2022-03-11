@@ -1,0 +1,160 @@
+# -*-makefile-*-
+
+MAGICK_PARAM= 	-channel R +level 0,3 -evaluate multiply 1 +channel\
+	       	-channel G +level 0,3 -evaluate multiply 4 +channel\
+	       	-channel B +level 0,3 -evaluate multiply 16 +channel\
+	       	-channel R -evaluate add 0 +channel\
+	       	-channel G -evaluate add 0 +channel\
+	       	-channel B -evaluate add 0 +channel\
+		-channel RGB -separate +channel \
+		-channel R -evaluate-sequence add -evaluate add 16 +channel\
+		-depth 8
+
+# 	       	-channel R $(MULTIPLY) +channel\
+#	       	-channel G $(MULTIPLY) +channel\
+#	       	-channel B $(MULTIPLY) +channel\
+#
+
+MAGICK_PARAM2= 	-channel R +level 0,3 -evaluate multiply 1 +channel\
+	       	-channel B +level 0,3 -evaluate multiply 4 +channel\
+	       	-channel G +level 0,3 -evaluate multiply 16 +channel\
+	       	-channel R -evaluate add 0 +channel\
+	       	-channel B -evaluate add 0 +channel\
+	       	-channel G -evaluate add 0 +channel\
+	       	-channel R $(MULTIPLY) +channel\
+	       	-channel B $(MULTIPLY) +channel\
+	       	-channel G $(MULTIPLY) +channel\
+		-channel RBG -separate +channel \
+		-channel R -evaluate-sequence add -evaluate add 24 +channel\
+		-depth 8
+
+FONTFILE=newfont_ff.png
+.PHONY: pre_sprites
+pre_sprites:
+	echo "digit_w EQU 8" > sprite_coor.S
+	echo "digit_h EQU 12" >> sprite_coor.S
+
+.PHONY: digits_small
+.ONESHELL:
+digits_small:  pic/$(FONTFILE)
+	mkdir -p digits
+	off=0
+	for i in 0 1 2 3 4 5 6 7 8 9 A B C D E F double; do
+	  $(MAGICK) -extract 8x12+$$off+62 $< $(MAGICK_PARAM)\
+	  R:digits/$$i.raw
+	  off=$$((off+8))
+#	  xxd -g 8 -c 8 digits/$$i.raw
+#	echo
+	done
+
+.PHONY: digits/scorescreen.raw
+.ONESHELL:
+digits/scorescreen.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "scorescreen_w EQU 72" >> sprite_coor.S
+	echo "scorescreen_h EQU 102" >> sprite_coor.S
+	$(MAGICK) -extract 71x102+3+122 $< $(MAGICK_PARAM) R:$@
+#	xxd -g 71 -c 71 $@
+
+.PHONY: digits/level.raw
+.ONESHELL:
+digits/level.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "level_w EQU 36" >> sprite_coor.S
+	echo "level_h EQU 12" >> sprite_coor.S
+	$(MAGICK) -extract 36x12+3+122 $< $(MAGICK_PARAM) R:$@
+	xxd -g 36 -c 36 $@
+
+.PHONY: digits/time.raw
+.ONESHELL:
+digits/time.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "time_w EQU 28" >> sprite_coor.S
+	echo "time_h EQU 12" >> sprite_coor.S
+	$(MAGICK) -extract 28x12+3+140 $< $(MAGICK_PARAM) R:$@
+#	xxd -g 28 -c 28 $@
+
+.PHONY: digits/score.raw
+.ONESHELL:
+digits/score.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "score_w EQU 38" >> sprite_coor.S
+	echo "score_h EQU 12" >> sprite_coor.S
+	$(MAGICK) -extract 38x12+3+158 $< $(MAGICK_PARAM) R:$@
+#	xxd -g 38 -c 38 $@
+
+.PHONY: digits/high.raw
+.ONESHELL:
+digits/high.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "high_w EQU 28" >> sprite_coor.S
+	echo "high_h EQU 14" >> sprite_coor.S
+	$(MAGICK) -extract 28x14+3+176 $< $(MAGICK_PARAM) R:$@
+#	xxd -g 28 -c 28 $@
+
+.PHONY: digits/lines.raw
+.ONESHELL:
+digits/lines.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "lines_w EQU 36" >> sprite_coor.S
+	echo "lines_h EQU 12" >> sprite_coor.S
+	$(MAGICK) -extract 36x12+3+194 $< $(MAGICK_PARAM) R:$@
+#	xxd -g 36 -c 36 $@
+
+.PHONY: digits/left.raw
+.ONESHELL:
+digits/left.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "left_w EQU 70" >> sprite_coor.S
+	echo "left_h EQU 12" >> sprite_coor.S
+	$(MAGICK) -extract 70x12+3+194 $< $(MAGICK_PARAM) R:$@
+#	xxd -g 70 -c 70 $@
+
+.PHONY: digits/credits.raw
+.ONESHELL:
+digits/credits.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "credits_w EQU 106" >> sprite_coor.S
+	echo "credits_h EQU 42" >> sprite_coor.S
+	$(MAGICK) -extract 106x42+1+75 $< $(MAGICK_PARAM2) R:$@
+#	xxd -g 105 -c 105 $@ c.asc
+
+.PHONY: digits/pause.raw
+.ONESHELL:
+digits/pause.raw: pic/$(FONTFILE)
+	@mkdir -p digits
+	echo "pause_w EQU 8" >> sprite_coor.S
+	echo "pause_h EQU 61" >> sprite_coor.S
+	$(MAGICK) -extract 8x61+0+0 $<  \
+	-channel R +level 0,255 -evaluate multiply 1 +channel\
+	       	-channel B +level 0,0 -evaluate multiply 2 +channel\
+	       	-channel G +level 0,0 -evaluate multiply 4 +channel\
+	       	-channel R -evaluate add 0 +channel\
+	       	-channel B -evaluate add 0 +channel\
+	       	-channel G -evaluate add 0 +channel\
+	       	-channel R $(MULTIPLY) +channel\
+	       	-channel B $(MULTIPLY) +channel\
+	       	-channel G $(MULTIPLY) +channel\
+		-channel RBG -separate +channel \
+		-channel R -evaluate-sequence add +channel\
+		-depth 16 R:$@
+.PHONY: digits/title.raw
+.ONESHELL:
+digits/title.raw: pic/jagtris_ff.png
+	mkdir -p digits
+#	echo "pause_w EQU 8" >> sprite_coor.S
+#	echo "pause_h EQU 61" >> sprite_coor.S
+	$(MAGICK) -extract 96x200+0+0 $<  \
+		-channel R +level 0,15 -evaluate multiply 1 +channel\
+	       	-channel B +level 0,0 -evaluate multiply 1 +channel\
+	       	-channel G +level 0,0 -evaluate multiply 1 +channel\
+	       	-channel R -evaluate add 0 +channel\
+	       	-channel B -evaluate add 0 +channel\
+	       	-channel G -evaluate add 0 +channel\
+		-channel RBG -separate +channel \
+		-channel R -evaluate-sequence add -evaluate add 32 +channel\
+		-depth 8 R:$@
+#	xxd -g 32 -c 32 $@
+
+#
+#		-channel R -evaluate-sequence add +channel
