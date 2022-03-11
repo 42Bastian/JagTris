@@ -14,15 +14,6 @@
 
 	.68000
 
-DFF0A0		.equ $14ee
-DFF0B0		.equ $14fe
-DFF0C0		.equ $150e
-DFF0D0		.equ $151e
-DFF0A0_2	.equ $152e
-DFF0B0_2	.equ $153e
-DFF0C0_2	.equ $154e
-DFF0D0_2	.equ $155e
-
 SOUND	= 1
 RESET_FADE = 1
 
@@ -157,7 +148,6 @@ clear_scr2:
 
 	move.w #(96*200>>2)-1,d0
 clear_scr3:
-//->	move.l	(a1)+,(a0)+
 	clr.l	(a0)+
 	dbra d0,clear_scr3
 
@@ -295,17 +285,8 @@ dummy_irq2:
 ;; Setup CLUT
 ;;----------------------------------------
 SetupCLUT:
-	;; 0 => black
-	;; 1 => gray
 	move.l	#$880088f0,$f00400
 	move.l	#$0000F0f0,$f00400+254*2
-//->	lea	$f00404,a0
-//->	move.w	#253,d0
-//->	move.w	#$ff,d1
-//->.l1:
-//->	move.w	d1,(a0)+
-//->	add.w	#$100,d1
-//->	dbra	d0,.l1
 
 	lea	$f00400+16*2,a0
 	move.w	#$8800,(a0)+
@@ -355,7 +336,7 @@ mp1:
 	move.w  d0,(a0)+
 	dbra    d5,mp1
 	dbra    d7,mp0
-	move.w  (a1)+,d0         ;; Wandfarbe
+	move.w  (a1)+,d0         ;; border color
 	moveq   #4,d7
 mp2:
         moveq   #63,d5
@@ -379,17 +360,17 @@ maske:
 	DC.L $FFDDBBBB,$BBBBDDFF
 	DC.L $FFDDDDDD,$DDDDDDFF
 	DC.L $FFFFFFFF,$FFFFFFFF
-;; border links
-       	.rept 8
+;; border left
+	.rept 8
 	DC.L $FFDDBB99,$77553311
 	.endr
 
-;; border rechts
+;; border right
 	.rept 8
 	DC.L $11335577,$99BBDDFF
 	.endr
 
-;; border unten
+;; border bottom
 	DC.L $11111111,$11111111
 	DC.L $33333333,$33333333
 	DC.L $55555555,$55555555
@@ -398,7 +379,7 @@ maske:
 	DC.L $BBBBBBBB,$BBBBBBBB
 	DC.L $DDDDDDDD,$DDDDDDDD
 	DC.L $FFFFFFFF,$FFFFFFFF
-;; corner links
+;; corner left
 	DC.L $FFDDBB99,$77553311
 	DC.L $FFDDBB99,$77553333
 	DC.L $FFDDBB99,$77555555
@@ -407,7 +388,7 @@ maske:
 	DC.L $FFDDBBBB,$BBBBBBBB
 	DC.L $FFDDDDDD,$DDDDDDDD
 	DC.L $FFFFFFFF,$FFFFFFFF
-;; corner rechts
+;; corner right
 	DC.L $11335577,$99BBDDFF
 	DC.L $33335577,$99BBDDFF
 	DC.L $55555577,$99BBDDFF
@@ -614,14 +595,14 @@ NEXT_OBJ         = 1
 	RSW obj_bm_l                   ;; size of object (für MakeOBL)
 	RSL obj_bm_data                ;; Data
 	RSW obj_bm_x                   ;; X
-	RSW obj_bm_y                   ;; Y pos in Halbzeilen
-	RSW obj_bm_height              ;; Höhe ODER cc bei BRANCH OBJECT
-	RSW obj_bm_link                ;; Abstand zum Nächsten Objekt in Objekten
-	RSB obj_bm_bits                ;; Bits pro Pixel
+	RSW obj_bm_y                   ;; Y pos in half lines
+	RSW obj_bm_height              ;; height or cc if BRANCH OBJECT
+	RSW obj_bm_link                ;; next object
+	RSB obj_bm_bits                ;; Bits per Pixel
 	RSB obj_bm_pitch               ;; Pitch
-	RSW obj_bm_dwidth              ;; Breite in Phrases
-	RSW obj_bm_iwidth              ;; Bildbreite (sichtbar)
-	RSB obj_bm_cindex              ;; Farb-Offset
+	RSW obj_bm_dwidth              ;; width in Phrases
+	RSW obj_bm_iwidth              ;; display width (sichtbar)
+	RSB obj_bm_cindex              ;; color offset
 	RSB obj_bm_flags               ;; Flags
 	RSW obj_bm_firstpx             ;; FirstPixel
 obj_bm_len      = RSCOUNT
@@ -629,7 +610,7 @@ obj_bm_len      = RSCOUNT
 	RSB obj_dummy1
 	RSB obj_sc_rem
 	RSB obj_sc_vscale
-	RSB obj_sc_hscale              ;; Ergänzungen für Scaled BitMap
+	RSB obj_sc_hscale
 obj_sc_len      = RSCOUNT
 
 ;;*************
@@ -637,7 +618,7 @@ obj_sc_len      = RSCOUNT
 ;;*************
 	RSRESET
 	RSW obj_gp_type
-	RSW obj_gp_l                   ;; Größe des Objektes (für MakeOBL)
+	RSW obj_gp_l                   ;; size
 	RSL obj_gp_data1
 	RSL obj_gp_data2
 	RSW obj_gp_link
@@ -648,9 +629,9 @@ obj_gp_len      = RSCOUNT
 ;;****************
 	RSRESET
 	RSW obj_br_type
-	RSW obj_br_l                   ;; Größe des Objektes (für MakeOBL)
+	RSW obj_br_l                   ;; size
 	RSW obj_br_y
-	RSW obj_br_cc                  ;; Bedingung
+	RSW obj_br_cc                  ;; condition
 	RSW obj_br_link,2
 obj_br_len      = RSCOUNT
 
@@ -690,12 +671,12 @@ MakeOBL:
 
 	lea 	OBL0,a0
 	lea 	OBL,a1
-	lea     (a1),a4          ;; start merken
+	lea     (a1),a4          ;; save start
 	moveq   #0,d7            ;; object counter
 
 	lea     Objekte(pc),a2    ;; source
 loop_mo:
-        lea     (a2),a3          ;; Ptr auf akt. Objekt retten
+        lea     (a2),a3          ;; save current object
 	movem.w (a2)+,d1/d5      ;; Type
 	tst.w   d1
 	bpl.s   ok_mo
@@ -714,7 +695,7 @@ ok_mo:
 	beq     gpu_mo           ;; 2=GPU-Object
 	subq.w  #2,d0
 	bmi.s   branch_mo        ;; 3=Branch Object
-;; Stop-Objekt erzeugen
+;; create Stop-Objekt
 	moveq   #1,d0
 	and.w   (a2)+,d0
 	lsl.w   #3,d0
@@ -740,11 +721,11 @@ branch_mo:
 	lsr.l   #2,d0
 	or.l    d0,d1            ;; CC
 
-	move.l  a1,d3            ;; akt. Pos merken
-	move.w  (a2)+,d0         ;; nächstes Objekt falls CC true
+	move.l  a1,d3            ;; current position
+	move.w  (a2)+,d0         ;; next object if CC true
 	bpl.s   ok_bra_mo
 	neg.w   d0
-	move.l  a4,d3            ;; sonst absolute
+	move.l  a4,d3            ;; else absolute
 ok_bra_mo:
         asl.w   #5,d0            ;; * 32
 	ext.l   d0
@@ -761,7 +742,7 @@ ok_bra_mo:
 
 	move.w  #($07FF<<3)|3,d1 ;; Branch Always
 	ext.l   d1
-	move.w  (a2)+,d0         ;; nächstes Objekt
+	move.w  (a2)+,d0         ;; next object
 	asl.w   #5,d0            ;; * 32
 	ext.l   d0
 	add.l   a1,d0
@@ -787,7 +768,7 @@ gpu_mo:
 
 	move.w  #($07FF<<3)|3,d1 ;; Branch Always
 	ext.l   d1
-	move.w  (a2)+,d0         ;; nächstes Objekt
+	move.w  (a2)+,d0         ;; next object
 	lsl.w   #5,d0            ;; * 32
 	ext.l   d0
 	add.l   a1,d0
@@ -804,7 +785,7 @@ gpu_mo:
 	lea     32(a1),a1
 	bra     loop_mo
 
-;; BitMap oder Scaled BitMap
+;; BitMap or Scaled BitMap
 bm_sc_mo:
         moveq   #-8,d0
 	and.l   (a2)+,d0         ;; Data-Adress (3..23)
@@ -828,15 +809,15 @@ ok_bm_sc_mo:
 	and.w   #$03FF,d3
 	swap    d3
 	lsr.l   #2,d3
-	or.l    d3,d1            ;; Höhe (14..23)
+	or.l    d3,d1            ;; height (14..23)
 
-	move.w  (a2)+,d3         ;; nächstes Objekt
+	move.w  (a2)+,d3         ;; next Objekt
 	lsl.w   #5,d3            ;; * 32
 	ext.l   d3
 	add.l   a1,d3
 	lsr.l   #3,d3
 	ror.l   #8,d3
-	move.l  d3,d2            ;; Link retten
+	move.l  d3,d2            ;; save Link
 	and.l   d4,d3
 	or.l    d3,d1            ;; Link (24..31)
 
@@ -871,7 +852,7 @@ ok_bm_sc_mo:
 	move.l  d0,d1
 	clr.w   d0
 	or.l    d0,d6            ;; IWidth (28..31)
-	ext.l   d1               ;; und (32..37)
+	ext.l   d1               ;; and (32..37)
 
 	move   #$fe,d0
 	and.b   (a2)+,d0
