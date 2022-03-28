@@ -57,15 +57,14 @@ depack1:
 	add.b	d1,d1
 	bcc.s	depack2
 
-	move.b	(a1)+,d2	// hi-offset::count
-	move.b	(a1)+,d3	// low-offset
+	moveq	#0,d4
+	move.b	(a1)+,d4	// hi-offset::count
 
-	move.w	#$f0,d4
-	and.w	d2,d4
-	andi.w	#$0F,d2		// r2:= count
+	moveq	#$0f,d2
+	and.w	d4,d2		; d2 = count
 	add.w	d2,d2
 	lsl.w	#4,d4
-	move.b	d3,d4		// r4:= offset
+	move.b	(a1)+,d4	; d4 = offset
 
 	neg.w	d4
 	lea	(a0,d4.w),a2
