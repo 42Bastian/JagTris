@@ -1,11 +1,5 @@
 	.68000
 START:
-	jmp	INIT
-	.phrase
-//->	.incbin "mod/bubsy2.mod"
-//->	.incbin "mod/robric32.mod"
-//->	.incbin	"mod/smooth_bs.mod"
-	.incbin "mod/trance_adventure.mod"
 INIT:
         move    #$2700,sr
 	lea     $1000.w,sp

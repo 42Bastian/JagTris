@@ -17,8 +17,6 @@
 SOUND	= 1
 RESET_FADE = 1
 
-mod	= $4008
-
 	.text
 	.globl _start
 _start:
@@ -1124,9 +1122,9 @@ no_timer:
 PLAYER:
 	.incbin "replayer.prg"
 ;;****************
-//->mod:
+mod:
 	;; MOD moved to depack.S
-;;->	.incbin "mod/trance_adventure.mod"
+	.incbin "mod/trance_adventure.mod"
  ENDIF
 
 jag_end:
