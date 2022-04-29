@@ -61,10 +61,9 @@ rom.bin: rom.S tetris_final.bin
 	$(RLN) -z -n -a 802000 x x -o $@ rom.o
 
 tetris.j64: rom.bin
-	cat $(BJL_ROOT)/bin/Univ.bin $< > $@.x
-	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@.x
-	dd if=$@.x of=$@ bs=1M count=1
-	rm $@.x
+	cat $(BJL_ROOT)/bin/Univ.bin $< > $@
+	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@
+	truncate -s 1M $@
 
 
 .PHONY: flash
