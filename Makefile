@@ -3,8 +3,8 @@
 
 OS:=$(shell uname -s)
 
-TJASS= lyxass
-RMAC= rmac
+TJASS= lyxass155
+RMAC= rmac214
 RLN= rln
 
 ifeq ($(OS),Linux)
@@ -66,10 +66,27 @@ tetris.j64: rom.bin
 	truncate -s 1M $@
 
 
+.PHONY: jaggd
+jaggd: tetris_final.cof
+	jaggd.exe -rd -stub -ux $<,a:0x4000,x:0x4000
+
+.PHONY: vjd
+vjd: tetris_final.cof
+	virtualjaguar -D $<
+
+.PHONY: vj
+vj: tetris_final.cof
+	virtualjaguar $<
+
 .PHONY: flash
 .ONESHELL:
 flash: tetris.jag
 	jcp -f tetris.jag
+
+.PHONY: reset
+reset:
+	@jcp -r
+	sleep 0.8
 
 .PHONY: upload
 .ONESHELL:
