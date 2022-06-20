@@ -3,8 +3,8 @@
 
 OS:=$(shell uname -s)
 
-TJASS= lyxass155
-RMAC= rmac214
+TJASS= lyxass
+RMAC= rmac
 RLN= rln
 
 ifeq ($(OS),Linux)
