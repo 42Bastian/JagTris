@@ -4,7 +4,7 @@
 printchar	reg 4
 
 PrintHex::
-	PUSH LR,r3,r4,r1
+	PUSHLR	r3,r4,r1
 	movei	#PrintChar,printchar
 	move	r0,r1
 	moveq	#8,r3
@@ -21,8 +21,7 @@ PrintHex::
 	movei	#128*8-8*4,r1
 	add	r1,r0
 	moveta	r0,Cursor.a
-	POP r1,r4,r3
-	RTS
+	POPLR	r3,r4,r1
 	unreg printchar
 *****************
 ****************************
@@ -69,7 +68,7 @@ PrintChar::
 	addq	#4,PChelp
 	moveta	PChelp,Cursor.a
 
-	POP r5,r4,r3,r2,r1
+	POP r1,r2,r3,r4,r5
 	jump	(LR)
 	nop
 	ALIGN 2

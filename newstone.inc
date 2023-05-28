@@ -73,7 +73,7 @@ Random::
 	add	r1,SEED2
 .cont4
 	move	SEED2,r0
-	POP	r15,r6,r5,r4,r3,r2
+	POP	r2,r3,r4,r5,r6,r15
 	jump	(LR)
 	nop
 

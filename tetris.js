@@ -174,7 +174,7 @@ ShowPoints::
 	movei 	#DrawDigitDez6,r0
 	BL 	(r0)
 	cmpq 	#0,r4
-	POP 	LR,r4
+	POP 	r4,LR
 	jump	z,(LR)
 	nop
 ;----------------------------------------
@@ -380,7 +380,7 @@ DrawDigitHex::
 	movei	#.loop,r0
 	jump	nz,(r0)
 	shlq	#4,r1
-	POP	r6,r5,r4
+	POP	r4,r5,r6
 	shrq	#16,r2
 	addq	#digit_h,r2
 	shlq	#16,r2
@@ -409,12 +409,12 @@ DrawDigitDez4::
 	PUSH	r1
 	mult	r0,r1
 	sub	r1,r4		; r4 - remainder
-
 	POP	r1
+
 	movei	#DrawDigit,r0
 	BL	(r0)
 	move	r4,r1
-	POP	LR,r4
+	POP	r4,LR
 	movei	#DrawDigitDez3,r0
 	jump	(r0)
 	nop
@@ -455,7 +455,7 @@ DrawDigitDez6::
 	movei	#DrawDigitDez3,r0
 	BL	(r0)
 	move	r4,r1
-	POP	r4,LR
+	POP	LR,r4
 
 	;; fall thru
 ;----------------------------------------
@@ -492,7 +492,7 @@ DrawDigitDez3::
 	move	r0,r1
 	movei	#DrawDigit,r0
 	BL	(r0)
-	POP	r1,LR
+	POP	LR,r1
 	;; fall thru
 
 ;----------------------------------------
@@ -520,7 +520,7 @@ DrawDigitDez2::
 	move	r0,r1
 	movei	#DrawDigit,r0
 	BL	(r0)
-	POP	r1,LR
+	POP	LR,R1
 
 ;----------------------------------------
 ;- DrawDigit

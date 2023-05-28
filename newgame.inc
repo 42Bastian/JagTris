@@ -147,7 +147,7 @@ ChooseLevel::
 	nop
 .select
 	// restore font color
-	POP	R0,R1,R2
+	POP	R2,R1,r0
 	store	r1,(r0)
 	subq	#4,r0
 	store	r2,(r0)

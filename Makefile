@@ -102,7 +102,7 @@ sprites: pre_sprites $(SPRITES)
 .PHONY: clean
 clean:
 	rm -f tetris.o irq_sub.o tetris.equ irq_sub.equ
-	rm -f tetris.bin tetris.j64 tetris.pck tetris_final.* rom.bin
+	rm -f tetris.bin tetris.pck *.bin
 	rm -f *.o *.prn
 	rm -f *~
 

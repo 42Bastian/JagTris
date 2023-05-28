@@ -211,7 +211,7 @@ draw_pf::
 	moveq	#PFmax_x-1,x_count
 	jump	nn,(LOOP)
 	shlq	#3,x_count
-	POP	r6,r5,r4,r3,r2
+	POP	r2,r3,r4,r5,r6
 	jump	(LR)
 	nop
 
@@ -559,7 +559,7 @@ CheckLines::
 	movei	#IncPoints,r1
 	move	Points,r0
 	BL	(r1)
-	POP	r4,r3,r2
+	POP	r2,r3,r4
 	shlq	#1,Points
 	subq	#1,LineCount
 	addqt	#1,Y
