@@ -1,6 +1,8 @@
 # makefile for Tetris
 #
 
+DEMO=tetris_final
+
 OS:=$(shell uname -s)
 
 TJASS= lyxass
@@ -67,30 +69,30 @@ tetris.j64: rom.bin
 
 
 .PHONY: jaggd
-jaggd: tetris_final.cof
+_jaggd: tetris_final.cof
 	jaggd.exe -rd -stub -ux $<,a:0x4000,x:0x4000
 
 .PHONY: vjd
-vjd: tetris_final.cof
+_vjd: tetris_final.cof
 	virtualjaguar -D $<
 
 .PHONY: vj
-vj: tetris_final.cof
+_vj: tetris_final.cof
 	virtualjaguar $<
 
 .PHONY: flash
 .ONESHELL:
-flash: tetris.jag
+_flash: tetris.jag
 	jcp -f tetris.jag
 
 .PHONY: reset
-reset:
+_reset:
 	@jcp -r
 	sleep 0.8
 
 .PHONY: upload
 .ONESHELL:
-upload: tetris_final.bin
+_upload: tetris_final.bin
 	jcp $< 0x4000
 #	tcpuploader $< 192.168.178.222
 
@@ -107,3 +109,5 @@ clean:
 # Jaguar: RRRRrBBBBbGGGGGg
 
 include Rules.newfont
+
+include Rules.launch
