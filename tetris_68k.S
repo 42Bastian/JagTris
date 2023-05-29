@@ -14,7 +14,6 @@
 
 	.68000
 
-SOUND	= 1
 RESET_FADE = 1
 
 	.text
@@ -57,62 +56,8 @@ GPUcode:
 	.incbin "tetris.o"
 	.phrase
 
-;;INIT
-;; created 24.09.95
-;; (c) Bastian Schick
-;;
-;; setup OP,GPU,DSP,CPU to a defined state
-;; OP = STOP (at $0)
-;; DSP,GPU : big-endian,stopped,IRQs disabled
-;; dummy irq
-;; inits SP to $1000
-;; stops PIT and JPIT1 & 2
-;; 68k-SR set to $2000
-;; CPU-IRQs disabled
-;; CPU registers are cleared (for debug purposes)
 ;;-----------------
-;;--    INIT     --
 INIT:
- IF 0 ; done in depack.S
-        move    #$2700,sr
-	lea     $1000.w,sp
-	lea     $F00000,a0
-	move.l  #$070007,d0           ;; big endian
-	move.l  d0,$210C(a0)
-	move.l  d0,$F1A10C
-	moveq 	#0,d0
-	move.l	d0,$2114(a0)           ;; stop gpu
-	move.l	d0,$f1a114             ;; stop dsp
-	move.l	d0,$2100(a0)           ;; disable GPU-IRQs
-	                              ;; disable DSP-IRQs
-	move.l	#%10001111100000000,$f1a100
-	move.l	#%111111<<8,$f10020    ;; clear and disable IRQs
-
-	move.l  d0,0.w
-	moveq   #4,d0
-	move.l  d0,4.w
-	moveq   #0,d0
-	move.l  d0,$20(a0)            ;; set OP to STOP-OBJECT
-	move.w  d0,$26(a0)            ;; clear OP-Flag
-	move.l  d0,$2A(a0)            ;; border black
-	move.w  d0,$56(a0)            ;; set CRY mode to color/not BW
-	move.w  d0,$58(a0)            ;; background black
-	move.l  d0,$50(a0)            ;; stop PIT
-	move.l  d0,$f10000            ;; stop JPIT1
-	move.l  d0,$f10004            ;; stop JPIT2
-	move.l  #$1F01<<16,$E0(a0)    ;; clear pending irqs
-	move.w  #$7fff,$4e(a0)        ;; no VI
-	lea     dummy_irq(pc),a0
-	move.l  a0,$0100.w
-	bra.s   INIT1
-dummy_irq:
-        move.l	#$1f00<<16,$f000e0
-	rte
-INIT1:
- ENDIF
-;;-----------------
-	move.w #$100,$f14000		// de-mute
-
 	lea     _68kvars,a6
 	lea     (a6),a0
 	move.w  #vars_len>>2,d0
@@ -178,13 +123,6 @@ clear_scr7:
 	bsr     MakePattern
 	bsr     MakeStones
 
- IF SOUND = 1
-	movem.l d0-a6,-(sp)
-	lea     mod,a0
-	jsr     PLAYER           ;; init player and MOD
-	movem.l (sp)+,d0-a6
- ENDIF
-
 	bsr	SetupCLUT
 
 	moveq	#1,d0
@@ -206,9 +144,6 @@ clear_scr7:
 	clr.l	MuteFlag(a6)
 	lea     $00F02114,a3
 	move.l	#startGPU,-4(a3)
- IF SOUND = 1
-	move.l  #0<<11|1,$00F1A114
- ENDIF
 	move.l  #0<<11|1,(a3)
 
 .loop:
@@ -1102,29 +1037,8 @@ VideoInit1:
 my_irq:
 	movem.l	d0/a6,-(sp)
 	btst    #1,$00F000E1          ;; GPU-Interrupt ?
-	beq.s   no_timer
- IF SOUND = 1
-	jsr	PLAYER+28+4
- ELSE
-	nop
- ENDIF
-no_timer:
 	move.l  #$0202<<16,$00F000E0
 	movem.l (sp)+,d0/a6
 	rte
 	.phrase
- IF SOUND = 1
-;;****************
-;;  MOD-Player   *
-;; MOD-Replayer (c) 1994 by Mark Fechtner
-;; Init : Call PLAYER ;;A0 ptr to MOD
-;;        Call PLAYER+32 during VBL
-PLAYER:
-	.incbin "replayer.prg"
-;;****************
-mod:
-	;; MOD moved to depack.S
-	.incbin "mod/trance_adventure.mod"
- ENDIF
-
 jag_end:

@@ -3,6 +3,7 @@
 
 TEST	set 0
 AnzObjekte	equ 4
+SOUND	equ 1
 
 	include <js\symbols\blit_eq.js>
 	include <js\symbols\jagregeq.js>
@@ -75,6 +76,35 @@ ENDM
 
 startGPU::
 	INITMODULE INIT
+ IF SOUND = 1
+	movei	#DSP_start,r0
+	movei	#DSP_RAM,r1
+	movei	#(DSP_end-DSP_start),r2
+	nop
+cpy_dsp:
+	load	(r0),r3
+	addq	#4,r0
+	subq	#4,r2
+	store	r3,(r1)
+	jr	pl,cpy_dsp
+	addq	#4,r1
+
+	movei	#$20-8,r14
+	movei	#LSP_module_music_data,r0
+	store	r0,(r14)
+	movei	#LSP_module_sound_bank,r0
+	store	r0,(r14+4)
+
+	moveq	#0,r0
+	bset	#14,r0
+	movei	#$f1a100,r14
+	store	r0,(r14)
+	movei	#$f1b000,r0
+	store	r0,(r14+$10)	; PC
+	moveq	#1,r0
+	store	r0,(r14+$14)	; GO
+ ENDIF
+
 	movei #init,r0
 	nop
 	jump (r0)
@@ -818,6 +848,21 @@ init::
 	echo "INIT to large, fix start"
  ENDIF
 	include "data.inc"
+
+	IF SOUND = 1
+	align 8
+DSP_start:
+	ibytes "lsp_v15.lib"
+DSP_end:
+	.long
+LSP_module_music_data:
+	.ibytes "mod/trance_adventure.lsmusic"
+
+	.long
+LSP_module_sound_bank:
+	.ibytes "mod/trance_adventure.lsbank"
+	ENDIF
+
 ende
 	echo "End of GPU %xende"
 ****************
