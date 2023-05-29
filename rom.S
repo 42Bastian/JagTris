@@ -1,4 +1,3 @@
-
 	.globl	_start
 _start:
         move    #$2700,sr
@@ -39,7 +38,11 @@ _start:
 	jmp	$4000
 	.long
 tetris:
+ IF SOUND = 1
 	.incbin "tetris_final.bin"
+ ELSE
+	.incbin "tetris_final_nos.bin"
+ ENDIF
 tetris_e:
 
 	.end

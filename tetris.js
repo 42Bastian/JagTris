@@ -3,7 +3,9 @@
 
 TEST	set 0
 AnzObjekte	equ 4
+ IFND SOUND
 SOUND	equ 1
+ ENDIF
 
 	include <js\symbols\blit_eq.js>
 	include <js\symbols\jagregeq.js>
@@ -303,11 +305,11 @@ IncLevel::
 ;- DESTROY: r0,r1,r2,r3
 ;----------------------------------------
 ShowLevel::
-	movei	#(y_level<<16)|(pf_x-digit_w-4),r2
 	movefa	Level.a,r1
+	movei	#(y_level<<16)|(pf_x-digit_w-4),r2
 	neg	r1
-	addq	#9,r1
 	movei	#DrawDigit,r0
+	addq	#9,r1
 	jump	(r0)
 	moveq	#scr_level,r3
 
@@ -345,11 +347,11 @@ ShowTime::
 	movefa	sec.a,r0
 	movefa	last_sec.a,r1
 	cmp	r0,r1
-	jr	nz,.cont
+	jump	z,(LR)
+	moveq	#30,r1
+
 	moveta	r0,last_sec.a
-	jump	(LR)
-	nop
-.cont
+
 //->	movei	#128*8*4+48,r1
 //->	moveta	r1,Cursor.a
 //->	movei	#PrintHex,r1
@@ -357,7 +359,6 @@ ShowTime::
 //->	nop
 
 	PUSH	LR
-	moveq	#30,r1
 	movefa	sec.a,r0
 	shlq	#1,r1
 	move 	r0,Seconds ; sec merken
@@ -468,7 +469,6 @@ DrawDigitDez6::
 	mult	r0,r1
 	sub	r1,r4		; r4 - remainder
 
-
 //->	movei	#128*8*6+48,r1
 //->	moveta	r1,Cursor.a
 //->	POP	r0
@@ -509,16 +509,16 @@ DrawDigitDez3::
 	move	r2,r1
 .c1
 	moveq	#25,r2
-	shlq	#2,r2
 	moveq	#0,r0
+	shlq	#2,r2
 	subqt	#1,r0
 .l1
 	sub	r2,r1
 	jr	nn,.l1
 	addqt	#1,r0
 	add	r2,r1
-	POP	r2
-	PUSH	r1
+	load	(SP),r2		; POP r2
+	store	r1,(SP)		; PUSH R1
 	move	r0,r1
 	movei	#DrawDigit,r0
 	BL	(r0)
@@ -566,7 +566,6 @@ DrawDigitDez2::
 ;- DESTROY: r0,r1
 ;----------------------------------------
 DrawDigit::
- IF 1
 	PUSH 	r2
 	WAITBLITTER
 
@@ -578,16 +577,14 @@ DrawDigit::
 
 	movei	#$10000|(-digit_w&$ffff),r0
 	store	r2,(blitter+_BLIT_A1_PIXEL)
+
+	cmpq	#0,r3
+	movei	#ScoreScreen,r2
+	jr	eq,.ok
 	store	r0,(blitter+_BLIT_A1_STEP)
 
-	movei	#ScoreScreen,r2
-	cmpq	#0,r3
-	jr	eq,.ok
-	nop
 	movei	#LevelScreen,r2
 .ok:
-
-___X::
 	movei	#BLIT_PITCH1|BLIT_PIXEL8|BLIT_WID128|BLIT_XADDPIX,r0
 
 	store	r2,(blitter)	; A1 Base
@@ -607,10 +604,8 @@ ___X::
 	store	r1,(blitter+_BLIT_CMD)
 //->	WAITBLITTER
 	POP	r2
-	addqt	#digit_w,r2
- ENDIF
 	jump	(LR)
-	nop
+	addqt	#digit_w,r2
 
 	include "newstone.inc"
 ;----------------------------------------
@@ -624,14 +619,14 @@ readJoy1::
 	JOYPAD1
 	jump	(LR)
 	nop
+
+
 dumpReg::
 	movefa	IRQ_RTS.a,r8
 dumpReg1:
 	cmpq	#0,dumpFlag
 	jr	nz,dumpReg1
 	nop
-
-
 
 	PUSH	LR,r3,r2,r1
 	moveq	#0,r2

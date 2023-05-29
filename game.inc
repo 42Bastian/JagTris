@@ -180,11 +180,10 @@ draw_pf::
 
 .loop0
 	move	y_count,r0
-	move	x_count,r1
+	move	x_count,r2
 	shlq	#16,r0
-	or	r1,r0
-
 	load	(PF_ptr),r1
+	or	r2,r0
 	shlq	#7,r1
 	add	pattern_ptr,r1
 

@@ -1,8 +1,6 @@
 # makefile for Tetris
 #
 
-DEMO=tetris_final
-
 OS:=$(shell uname -s)
 
 TJASS= lyxass
@@ -17,7 +15,15 @@ MAGICK=magick
 export MULTIPLY=#
 endif
 
+SOUND?= 1
+
+ifeq ($(SOUND),0)
+DEMO=tetris_final_nos
+all: tetris_nos.j64 tetris_final_nos.cof
+else
+DEMO=tetris_final
 all: tetris.j64 tetris_final.cof
+endif
 
 DIGITS_SMALL=0 1 2 3 4 5 6 7 8 9 A B C D E F double
 DIGITS_SMALL:=$(addprefix digits/,$(DIGITS_SMALL))
@@ -36,7 +42,7 @@ SPRITES+=digits/title.raw
 tetris.equ tetris.o : tetris.js irq_sub.o game.inc globlreg.inc newgame.inc\
 	sprite.S sprite_coor.S data.inc newstone.inc joystick.inc constant.S\
 	debugprint.inc
-	$(TJASS) -w -sh  tetris.js
+	$(TJASS) -w -sh -D SOUND=$(SOUND)  tetris.js
 
 irq_sub.o : irq_sub.js globlreg.inc constant.S
 	$(TJASS) -w -sh irq_sub.js
@@ -50,19 +56,24 @@ tetris.bin: tetris_68k.o
 tetris.pck: tetris.bin
 	tp +j $< -o $@
 
-tetris_final.cof: tetris.pck depack.S
+$(DEMO).cof: tetris.pck depack.S
 	$(RMAC) -4 depack.S
 	$(RLN) -z -e -a 4000 x x -o $@ depack.o
 
-tetris_final.bin: tetris.pck depack.S
+$(DEMO).bin: tetris.pck depack.S
 	$(RMAC) -4 depack.S
 	$(RLN) -z -n -a 4000 x x -o $@ depack.o
 
-rom.bin: rom.S tetris_final.bin
-	$(RMAC) -4 rom.S
+rom.bin: rom.S $(DEMO).bin
+	$(RMAC) -4 -DSOUND=$(SOUND) rom.S
 	$(RLN) -z -n -a 802000 x x -o $@ rom.o
 
 tetris.j64: rom.bin
+	cat $(BJL_ROOT)/bin/Univ.bin $< > $@
+	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@
+	truncate -s 1M $@
+
+tetris_nos.j64: rom.bin
 	cat $(BJL_ROOT)/bin/Univ.bin $< > $@
 	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@
 	truncate -s 1M $@
@@ -102,7 +113,7 @@ sprites: pre_sprites $(SPRITES)
 .PHONY: clean
 clean:
 	rm -f tetris.o irq_sub.o tetris.equ irq_sub.equ
-	rm -f tetris.bin tetris.pck *.bin
+	rm -f tetris.bin tetris.pck *.bin *_nos.*
 	rm -f *.o *.prn
 	rm -f *~
 
