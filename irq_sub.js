@@ -142,8 +142,8 @@ timer_irq::
 	load	(IRQScratch0.a),IRQScratch1.a
 
 	moveq	#20,_50Hz.a
-//->	bset	#1,IRQScratch1.a
-//->	store	IRQScratch1.a,(IRQScratch0.a)		; kick CPU-VBL
+	bset	#1,IRQScratch1.a
+	store	IRQScratch1.a,(IRQScratch0.a)		; kick CPU-VBL
 
 .cont0
 	movefa	PauseFlag,IRQScratch1.a
