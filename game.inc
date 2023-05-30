@@ -232,9 +232,9 @@ ClearSecond::
 	movei	#1<<16|((PFmax_x*8)*(PFmax_y*8)*2)>>2,r0
 	movei	#BLIT_PATDSEL,r1
 	store	r0,(blitter+_BLIT_COUNT)
-	store	r1,(blitter+_BLIT_CMD)
 	jump	(LR)
-	nop
+	store	r1,(blitter+_BLIT_CMD)
+
 *****************
 * CheckNewPos
 * r0 = new_x / r1 = new_y
@@ -464,7 +464,6 @@ Points		REG 13
 Y1		REG 12
 Y		REG 11
 CONT		REG 10
-LOOP1		REG  9
 LOOP0		REG  8
 Counter		REG  7
 LineCount	REG  6
@@ -476,7 +475,6 @@ LineOffset	REG  2
 CheckLines::
 	PUSH	LR
 	movei	#.loop0,LOOP0
-	movei	#.loop1,LOOP1
 	movei	#.loop2,LOOP2
 	movei	#.cont,CONT
 	movei	#PlayFieldTop,ptr
@@ -492,12 +490,11 @@ CheckLines::
 	moveq	#PFmax_x-3,Counter	; field width - border
 .loop1
 	load	(ptr),r0
-	subq	#4,ptr
 	cmpq	#0,r0
 	jump	z,(CONT)		; empty space
 	subq	#1,Counter
-	jump	nn,(LOOP1)
-	nop
+	jr	nn,.loop1
+	subqt	#4,ptr			; border
 
 ;-- line filled, "blink" line
 	moveq	#7,r1
@@ -572,7 +569,7 @@ CheckLines::
 .exit
 	RTS
 
-UNREG Y1,Y,CONT,LOOP2,LOOP1,LOOP0,Counter,LineCount
+UNREG Y1,Y,CONT,LOOP2,LOOP0,Counter,LineCount
 UNREG ptr_save,ptr,ptr2,LineOffset,Points
 ;---------------
 	ENDMODULE GAME

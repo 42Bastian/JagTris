@@ -10,6 +10,10 @@
 ;---------------
 ;- Choose Level
 ;---------------
+SELECT	reg 12
+EXIT	reg 11
+LOOP	reg 7
+
 ChooseLevel::
 	WAITBLITTER
 	movei	#TitleScreen,r0
@@ -90,28 +94,27 @@ ChooseLevel::
 	store	r1,(r0)
 
 	// choose
-	movei	#.loop,r7
-	movei	#.loop1,r10
-	movei	#.exit,r11
-	movei	#.select,r12
+	movei	#.exit,EXIT
+	movei	#.select,SELECT
+	move	pc,LOOP
 .loop
 	WaitVBL
 
 	movei	#readJoy1,r0
 	BL	(r0)
 	cmpq	#0,r1
-	jump	z,(r7)
+	jump	z,(LOOP)
 	btst	#JOY_B_BIT,r1
-	jump	nz,(r12)
+	jump	nz,(SELECT)
 	movefa	Level.a,r9
 	btst	#JOY_UP_BIT,r1
 	subqt	#1,r9
-	jump	nz,(r11)
+	jump	nz,(EXIT)
 	btst	#JOY_DOWN_BIT,r1
-	addqt	#2,r9
-	jump	nz,(r11)
-	nop
 	movei	#JOY_HASH|JOY_STAR,r5
+	jump	nz,(EXIT)
+	addqt	#2,r9
+
 	cmp	r0,r5
 	movei	#CheckKey,r4
 	jr	nz,.loop1
@@ -129,22 +132,22 @@ ChooseLevel::
 	cmp	r1,r5
 	jr	z,.exit
 	subq	#1,r9
-	jump	nz,(r10)
+	jr	nz,.loop1
 	addqt	#4,r4
-	jump	(r7)
+	jump	(LOOP)
 	nop
 
 .exit
 	cmpq	#0,r9
-	jump	n,(r7)
+	jump	n,(LOOP)
 	cmpq	#10,r9
-	jump	nn,(r7)
+	jump	nn,(LOOP)
 	nop
 	moveta	r9,Level.a
 	movei	#ShowLevel,r1
-	BL	(r1)
-	jump	(r7)
-	nop
+	jump	(r1)
+	move	LOOP,LR
+
 .select
 	// restore font color
 	POP	R2,R1,r0
@@ -152,6 +155,7 @@ ChooseLevel::
 	subq	#4,r0
 	store	r2,(r0)
 
+	UNREG EXIT,LOOP,SELECT
 ;---------------
 InitPlay::
 	// clear title screen (should remove object ...)
