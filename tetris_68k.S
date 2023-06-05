@@ -25,6 +25,7 @@ _start:
 	.include "help.mac"
 	.include "sprite_coor.S"
 	.include "constant.S"
+	.include "jaguar.inc"
 
 ;;****************
 ;;  Variablen    *
@@ -40,7 +41,6 @@ _start:
 	RSL StackBottom,$200
 	RSL stack
 vars_len        = RSCOUNT
-
 
 ;;****************
 
@@ -60,63 +60,42 @@ GPUcode:
 INIT:
 	lea     _68kvars,a6
 	lea     (a6),a0
-	move.w  #vars_len>>2,d0
-clear_var:
-	clr.l   (a0)+
-	dbra    d0,clear_var
+	move.l	#vars_len,d0
+	bsr	memzero
 
 	lea     stack(a6),sp
 
 	lea	$f00400,a0
-	moveq	#127,d0
-	moveq	#0,d1
-clear_clut:
-	move.l	d1,(a0)+
-	dbra	d0,clear_clut
+	move.w	#256*2,d0
+	bsr	memzero
 
 	lea GraphicScreen,a0
-	move.w #(gfx_max_x*gfx_max_y*2)>>1,d0
-clear_scr:
-	clr.l (a0)+
-	dbra d0,clear_scr
+	move.w #(gfx_max_x*gfx_max_y*2),d0
+	bsr	memzero
 
 	lea GraphicScreen2,a0
-	move.w #(gfx_max_x*gfx_max_y*2)>>1,d0
-clear_scr2:
-	clr.l (a0)+
-	dbra d0,clear_scr2
+	move.w #(gfx_max_x*gfx_max_y*2),d0
+	bsr	memzero
 
 	lea TitleScreen,a0
-	lea	_title,a1
-
-	move.w #(96*200>>2)-1,d0
-clear_scr3:
-	clr.l	(a0)+
-	dbra d0,clear_scr3
+	move.w #(97*200),d0
+	bsr	memzero
 
 	lea ScoreScreen,a0
-	move.w #((128*210)>>2)-1,d0
-clear_scr4:
-	clr.l	(a0)+
-	dbra d0,clear_scr4
+	move.w #((128*210)),d0
+	bsr	memzero
 
 	lea LevelScreen,a0
-	move.w #((128*210)>>2)-1,d0
-clear_scr5:
-	clr.l	(a0)+
-	dbra d0,clear_scr5
+	move.w #((128*210)),d0
+	bsr	memzero
 
 	lea StatScreen,a0
-	move.w #(4*8*20*8)>>1,d0
-clear_scr6:
-	clr.l	(a0)+
-	dbra d0,clear_scr6
+	move.w #(4*8*20*8),d0
+	bsr	memzero
 
 	lea DebugScreen,a0
-	move.w #(dbg_max_x*dbg_max_y)>>1,d0
-clear_scr7:
-	move.l #0,(a0)+
-	dbra d0,clear_scr7
+	move.w #(dbg_max_x*dbg_max_y),d0
+	bsr	memzero
 
 	bsr     VideoInit
 	bsr     InitOP
@@ -147,9 +126,7 @@ clear_scr7:
 	move.l  #0<<11|1,(a3)
 
 .loop:
-	move.l	$f02110,a0
-	move	a0,usp
-        stop    #$2000
+	stop    #$2000
 	tst.l   ResetFlag(a6)
 	beq.s   .loop
 ;;****************
@@ -184,13 +161,13 @@ reset3:
 	lea     $F00000,a0
 	lea	$F10000,a1
 	moveq 	#0,d0
+reset4:
 	move.l	d0,$2114(a0)         ;; stop gpu
-	move.l	d0,$a114(a1)         ;; stop dsp
-	move.l	d0,$2100(a0)           ;; disable GPU-IRQs
-	                              ;; disable DSP-IRQs
-	move.l	#%10001111100000000,$a100(a1)
+	move.l	d0,$f1a114           ;; stop dsp
+	move.l	d0,$2100(a0)         ;; disable GPU-IRQs
+	                             ;; disable DSP-IRQs
+	move.l	#%10001111100000000,$f1a100
 	move.l	#%111111<<8,$0020(a1)    ;; clear and disable IRQs
-
 	move.l  d0,0.w
 	moveq   #4,d0
 	move.l  d0,4.w
@@ -1040,5 +1017,8 @@ my_irq:
 	move.l  #$0202<<16,$00F000E0
 	movem.l (sp)+,d0/a6
 	rte
+
+	.include "memzero.inc"
+
 	.phrase
 jag_end:
