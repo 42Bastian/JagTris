@@ -74,8 +74,7 @@ MACRO MyINITMODULE
 ENDM
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 
-	run $40020
-
+	run $40030
 startGPU::
 	INITMODULE INIT
  IF SOUND = 1

@@ -1,6 +1,8 @@
 # makefile for Tetris
 #
 
+DEMO=tetris
+
 OS:=$(shell uname -s)
 
 TJASS= lyxass
@@ -17,13 +19,7 @@ endif
 
 SOUND?= 1
 
-ifeq ($(SOUND),0)
-DEMO=tetris_final_nos
-all: tetris_nos.j64 tetris_final_nos.cof
-else
-DEMO=tetris_final
-all: tetris.j64 tetris_final.cof
-endif
+all: tetris.j64
 
 DIGITS_SMALL=0 1 2 3 4 5 6 7 8 9 A B C D E F double
 DIGITS_SMALL:=$(addprefix digits/,$(DIGITS_SMALL))
@@ -53,59 +49,14 @@ tetris_68k.o: tetris_68k.S sprite_coor.S tetris.equ tetris.o
 tetris.bin: tetris_68k.o
 	$(RLN) -z -n -a 40000 x x -o $@ $<
 
-tetris.pck: tetris.bin
-	tp +j $< -o $@
+tetris.cof: tetris_68k.o
+	$(RLN) -z -e -a 40000 x x -o $@ $<
 
-$(DEMO).cof: tetris.pck depack.S
-	$(RMAC) -4 depack.S
-	$(RLN) -z -e -a 4000 x x -o $@ depack.o
-
-$(DEMO).bin: tetris.pck depack.S
-	$(RMAC) -4 depack.S
-	$(RLN) -z -n -a 4000 x x -o $@ depack.o
-
-rom.bin: rom.S $(DEMO).bin
-	$(RMAC) -4 -DSOUND=$(SOUND) rom.S
-	$(RLN) -z -n -a 802000 x x -o $@ rom.o
-
-tetris.j64: rom.bin
-	cat $(BJL_ROOT)/bin/Univ.bin $< > $@
+tetris.j64:  tetris.bin
+	cp sbl.XXX $@
+	cat tetris.bin >> $@
 	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@
 	truncate -s 1M $@
-
-tetris_nos.j64: rom.bin
-	cat $(BJL_ROOT)/bin/Univ.bin $< > $@
-	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@
-	truncate -s 1M $@
-
-
-.PHONY: jaggd
-_jaggd: tetris_final.cof
-	jaggd.exe -rd -stub -ux $<,a:0x4000,x:0x4000
-
-.PHONY: vjd
-_vjd: tetris_final.cof
-	virtualjaguar -D $<
-
-.PHONY: vj
-_vj: tetris_final.cof
-	virtualjaguar $<
-
-.PHONY: flash
-.ONESHELL:
-_flash: tetris.jag
-	jcp -f tetris.jag
-
-.PHONY: reset
-_reset:
-	@jcp -r
-	sleep 0.8
-
-.PHONY: upload
-.ONESHELL:
-_upload: tetris_final.bin
-	jcp $< 0x4000
-#	tcpuploader $< 192.168.178.222
 
 .PHONY: sprites
 sprites: pre_sprites $(SPRITES)

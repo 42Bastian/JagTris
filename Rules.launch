@@ -39,7 +39,7 @@ jaggd: $(DEMO).cof
 #,a:0x4000,x:0x4000
 
 .PHONY: jaggd_rom
-jaggd_romn: $(DEMO).rom
+jaggd_rom: $(DEMO).j64
 	$(JAGGD) -rd -ux $<,a:0x802000,x:0x802000
 
 #
