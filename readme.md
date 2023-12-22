@@ -18,4 +18,4 @@ Source release of the pimped JagTris version as it can be found in the LOOPZ ROM
 
 - imageMagick (Q8)
 
-- tp (TurboPacker)
+- lz4
