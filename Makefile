@@ -35,6 +35,8 @@ SPRITES+=digits/pause.raw
 SPRITES+=digits/credits.raw
 SPRITES+=digits/title.raw
 
+START_ADDR=40000
+
 tetris.equ tetris.o : tetris.js irq_sub.o game.inc globlreg.inc newgame.inc\
 	sprite.S sprite_coor.S data.inc newstone.inc joystick.inc constant.S\
 	debugprint.inc
@@ -47,16 +49,19 @@ tetris_68k.o: tetris_68k.S sprite_coor.S tetris.equ tetris.o
 	$(RMAC) -4 -i$(BJL_ROOT)/68k_inc -i$(BJL_ROOT)/68k_mac tetris_68k.S
 
 tetris.bin: tetris_68k.o
-	$(RLN) -z -n -a 40000 x x -o $@ $<
+	$(RLN) -z -n -a $(START_ADDR) x x -o $@ $<
 
 tetris.cof: tetris_68k.o
-	$(RLN) -z -e -a 40000 x x -o $@ $<
+	$(RLN) -z -e -a $(START_ADDR) x x -o $@ $<
 
-tetris.j64:  tetris.bin
-	cp sbl.XXX $@
-	cat tetris.bin >> $@
+.ONESHELL:
+tetris.j64:  tetris.bin header.js
+	@cp sbl.XXX $@
+	lz4 -f -9 -l --no-frame-crc tetris.bin
+	$(TJASS) -d -D START_ADDR=0x$(START_ADDR) header.js
+	cat header.o >> $@
 	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@
-	truncate -s 512K $@
+	truncate -s 128K $@
 
 .PHONY: sprites
 sprites: pre_sprites $(SPRITES)
@@ -64,7 +69,7 @@ sprites: pre_sprites $(SPRITES)
 .PHONY: clean
 clean:
 	rm -f tetris.o irq_sub.o tetris.equ irq_sub.equ
-	rm -f tetris.bin tetris.pck *.bin *_nos.*
+	rm -f tetris.bin tetris.bin.lz4 *.bin *_nos.* *.cof
 	rm -f *.o *.prn
 	rm -f *~
 

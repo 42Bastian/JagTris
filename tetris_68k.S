@@ -47,13 +47,6 @@ vars_len        = RSCOUNT
 VID_MODE        = $6c1		; CRY
 
 start:
-	;;----  SBL header ----
-	bra.w	start2
-	dc.l	start
-	dc.l	jag_end-start
-	dc.l	0
-start2:
-	;; --------------------
 	jmp	INIT
 	.dphrase
 	dc.l	0
