@@ -56,7 +56,7 @@ tetris.j64:  tetris.bin
 	cp sbl.XXX $@
 	cat tetris.bin >> $@
 	bzcat $(BJL_ROOT)/bin/allff.bin.bz2 >> $@
-	truncate -s 1M $@
+	truncate -s 512K $@
 
 .PHONY: sprites
 sprites: pre_sprites $(SPRITES)
